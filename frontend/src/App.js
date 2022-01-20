@@ -1,8 +1,8 @@
-import scanner from "./components/scanner";
+import Scanner from "./components/scanner";
 const App = () => {
   return (
     <div className="App">
-     <scanner/>
+     <Scanner/>
     </div>
   );
 }
