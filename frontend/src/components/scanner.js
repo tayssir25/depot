@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { scanner } from "scanner-js";
+import { prominent } from "color.js";
 
 const Scanner = () => {
   const [imagesScanned, setImagesScanned] = useState([]);
+  const [result, setResult] = useState([]);
+  const [f_result, setF_result] = useState([]);
 
   /**scan request sent along with displayImagesoNpage function */
   const scanToPdfWithThumbnails = () => {
@@ -10,7 +13,7 @@ const Scanner = () => {
       output_settings: [
         {
           type: "return-base64",
-          format: "pdf",
+          format: "jpg",
         },
         {
           type: "return-base64-thumbnail",
@@ -20,58 +23,76 @@ const Scanner = () => {
       ],
     });
   };
-
   /** Processes the scan result */
   const displayImagesOnPage = (successful, mesg, response) => {
     if (!successful) {
-      // On error
+      // if there's an error
       console.error("Failed: " + mesg);
       return;
     }
-
     if (
       successful &&
       mesg != null &&
       mesg.toLowerCase().indexOf("user cancel") >= 0
     ) {
-      // User cancelled.
+      // if the user cancels wouthout saving the scanned documents
       console.info("User cancelled");
       return;
     }
-
     let scannedImages = window.scanner.getScannedImages(response, true, false); // returns an array of ScannedImage
-    for (
-      let i = 0;
-      scannedImages instanceof Array && i < scannedImages.length;
-      i++
-    ) {
-      let scannedImage = scannedImages[i];
-      processOriginal(scannedImage);
-    }
-
-    let thumbnails = window.scanner.getScannedImages(response, false, true); // returns an array of ScannedImage for the thumbnails, just for showing
-    for (let i = 0; thumbnails instanceof Array && i < thumbnails.length; i++) {
-      let thumbnail = thumbnails[i];
-      processThumbnail(thumbnail);
-    }
+    setImagesScanned([...scannedImages]);
   };
 
-  const processThumbnail = (scannedImage) => {
-    let elementImg = window.scanner.createDomElementFromModel({
-      name: "img",
-      attributes: {
-        class: "scanned",
-        src: scannedImage.src,
-      },
-    });
-    document.getElementById("images").appendChild(elementImg);
+  const getColor = (data, i, res) => {
+    if (i < data.length) {
+      prominent(data[i].src, { amount: 1 }).then((color) => {
+        console.log(color); // [241, 221, 63]
+        console.log(i);
+        if (color.toString() === "20,200,120") {
+          res.push(i);
+        }
+
+        let j = i + 1;
+
+        getColor(data, j, res);
+      });
+    } else {
+      // the end of the search
+      setResult([...res]);
+    }
   };
-  const processOriginal = (scannedImage) => {
-    let imgsScanned = imagesScanned;
-    imgsScanned.push(scannedImage);
-    setImagesScanned(imgsScanned);
-    console.log(imagesScanned);
+
+  useEffect(() => {
+    // desconstruct images array
+    let files = [];
+    let bucket = [];
+    for (let i = 0; i < imagesScanned.length; i++) {
+      if (result.indexOf(i) !== -1) {
+        // push to files array
+        files.push(bucket);
+        // flush array
+        bucket = [];
+      } else {
+        bucket.push(imagesScanned[i]);
+      }
+    }
+    if (bucket.length > 0) {
+      files.push(bucket);
+    }
+    setF_result([...files]);
+  }, [result]);
+
+  useEffect(() => {
+    console.log("final result", f_result);
+  }, [f_result]);
+
+  const separateImages = () => {
+    getColor(imagesScanned, 0, []);
   };
+
+  useEffect(() => {
+    separateImages(imagesScanned);
+  }, [imagesScanned]);
   const onClick = () => {
     try {
       scanToPdfWithThumbnails();
@@ -79,7 +100,6 @@ const Scanner = () => {
       console.log(err);
     }
   };
-
   return (
     <div>
       <h2>Scanner.js TESTING</h2>

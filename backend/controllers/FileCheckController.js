@@ -12,14 +12,14 @@ const parseFile = async (req, res, filePath) => {
       const language = req.body.language;
       if (!filePath) {
         const FilePath = String(filePath);
-        var result = await ocrSpace(FilePath, {
+        var result = await OCR(FilePath, {
           language,
           isCreateSearchablePdf,
           isSearchablePdfHideTextLayer,
           isTable,
         });
       } else
-        var result = await ocrSpace(filePath.path, {
+        var result = await OCR(filePath.path, {
           language,
           isCreateSearchablePdf,
           isSearchablePdfHideTextLayer,
