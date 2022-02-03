@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { scanner } from "scanner-js";
+import TextField from "@mui/material/TextField";
 import { prominent } from "color.js";
+import "./scanner.css";
 
 const Scanner = () => {
   const [imagesScanned, setImagesScanned] = useState([]);
@@ -47,7 +49,6 @@ const Scanner = () => {
     if (i < data.length) {
       prominent(data[i].src, { amount: 1 }).then((color) => {
         console.log(color); // [241, 221, 63]
-        console.log(i);
         if (color.toString() === "20,200,120") {
           res.push(i);
         }
@@ -82,8 +83,22 @@ const Scanner = () => {
     setF_result([...files]);
   }, [result]);
 
+  const displayScannedIMGS = (IMGS, id) =>{
+    IMGS?.map((image)=> {
+      let I =new Image();
+      I.src= image?.src;
+      document.getElementById(id).appendChild(I);
+    })
+  }
   useEffect(() => {
+    /**use effect to render the final result
+     * the returned array is to be mapped and manipulated
+     */
     console.log("final result", f_result);
+    displayScannedIMGS(f_result[0], 'input1');
+    displayScannedIMGS(f_result[1], 'input2');
+    displayScannedIMGS(f_result[2], 'input3');
+
   }, [f_result]);
 
   const separateImages = () => {
@@ -100,13 +115,68 @@ const Scanner = () => {
       console.log(err);
     }
   };
+
+  const renderInputs = () => {
+    if (f_result.length){
+        return(
+          <div>
+          <div>
+            <TextField
+              id="filePath"
+              name="filePath"
+              key={Math.random().toString()}
+              label="Fichier "
+              type="file"
+              multiple
+              variant="standard"
+              value={''}
+              fullWidth
+            />
+            <div id='input1'></div>
+          </div>
+          <div>
+            <TextField
+              id="filePath"
+              name="filePath"
+              key={Math.random().toString()}
+              label="Fichier "
+              type="file"
+              multiple
+              variant="standard"
+              value={''}
+              fullWidth
+            />
+            <div id='input2'></div>
+          </div>
+          <div>
+            <TextField
+              id="filePath"
+              name="filePath"
+              key={Math.random().toString()}
+              label="Fichier "
+              type="file"
+              multiple
+              variant="standard"
+              value={''}
+              fullWidth
+            />
+            <div id='input3'></div>
+          </div>
+        </div>
+        );
+    }
+
+    return('');
+  }
   return (
     <div>
       <h2>Scanner.js TESTING</h2>
       <button type="button" onClick={() => onClick()}>
         Scan
       </button>
-      <div id="images"></div>
+      <div id="images">
+       {renderInputs()}
+      </div>
     </div>
   );
 };
